@@ -1,6 +1,7 @@
 #meshDNS by rémi arnaud
 
-SOURCES = main.c config.c parsing.c
+SOURCES = main.c config.c parsing.c request.c
+OFILE = main.o config.o parsing.o request.o
 NAME = mdns
 
 all: build 
@@ -11,8 +12,8 @@ build:
 	gcc $(SOURCES) -o $(NAME)
 
 fclean: clean
-	rm $(NAME)
+	rm -f $(NAME)
 
 clean:
-	rm *.o
+	rm -f $(OFILE)
 

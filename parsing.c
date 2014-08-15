@@ -63,14 +63,21 @@ mdns *parseResponse(){
   return NULL;
 }
 
-mdns *parseReq(mdns *req){
+resp *parseReq(mdns *req, linfo *infos){
   
   //hash verification
 
   if (req->infos & RESPOND)
     return parseResponse();
 
-    
+  if (req->type == NAME)
+    return requestName(req, infos);
+  else if (req->type == KEY)
+    return requestKey(req, infos);
+  else if (req->type == IPTOKEY)
+    return requestIpToKey(req, infos);
+  else if (req->type == IPTONAME)
+    return requestIpToName(req, infos);
 
   return NULL;
 }

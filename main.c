@@ -15,6 +15,7 @@
 #include "meshDNS.h"
 #include "parsing.h"
 #include "config.h"
+#include "request.h"
 
 #define PORT 8173
 #define BUFSIZE 512
@@ -26,6 +27,7 @@ int main(int ac, char **av){
   int			sock;
   char			*buf;
   mdns			*req;
+  resp      *resp;
   int			recv_len;
   int			slen;
   struct ifreq		ifr;
@@ -83,7 +85,7 @@ int main(int ac, char **av){
       else {
 	if (FD_ISSET(0, &rfds)){
 	  read(0, buf, BUFSIZE);
-	  printf("tutu\n");
+	  printf("Send Request\n");
 	  req = parseBuf(buf);
 	  if (req != NULL){
 	    //send request to broadcast
@@ -97,9 +99,10 @@ int main(int ac, char **av){
 	      printf("Error : recvfrom fail\n");
 	      exit(1);
 	    }
-	  printf("toto\n");
-	  req = parseReq((mdns *)buf);
-	  //send response to the sender
+	  printf("Receive Request\n");
+	  resp = parseReq((mdns *)buf, &infos);
+    sendto(sock, req, sizeof(mdns), 0, (struct sockaddr*) &si_other, slen);
+    freeResp(resp);
 	}
       }
       

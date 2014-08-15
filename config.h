@@ -6,6 +6,8 @@
 #include <netinet/in.h>
 #include "meshDNS.h"
 
+// peut etre définir struct sname avant
+
 typedef struct snamelist{
   struct sname		*name;
   struct snamelist	*next;
@@ -25,14 +27,14 @@ typedef struct skeylist {
 
 typedef struct sname {
   char			name[128];
-  struct skeylist	*lKey;
-  struct sname		*next;
+  struct    skeylist	*lKey;
+  struct    sname		*next;
 } name;
 
 typedef struct localinfo {
-  key     *me;
-  name    *names;
-  key     *keys;
+  key       *me;
+  name      *names;
+  key       *keys;
 } linfo;
 
 char parseFile(linfo *);

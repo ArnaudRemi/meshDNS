@@ -3,6 +3,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <netinet/in.h>
 #include <fcntl.h>
@@ -13,8 +14,11 @@
 name *newName(char *str, lkey *keys){
   name *n;
   
-  n = malloc(sizeof(name));
-  //error malloc
+  if ((n = malloc(sizeof(name))) == -1) {
+    printf("Error: malloc fail\n");
+    return NULL;
+  }
+
   n->next = NULL;
   strcpy(&(n->name[0]), str);
   n->lKey = keys;
@@ -82,19 +86,18 @@ void addNametoKey(name *n, key *k){
 }
 
 char parseFile(linfo *infos){
-  int fd;
+  FILE *fd;
   char *line = NULL;
-  int  useless = 0;
+  size_t  useless = 0;
   name *new;
   
-  if ((fd = open("names.conf", O_RDONLY)) < 0){
-    printf("Error open names.conf file\n");
+  if ((fd = fopen("./names.conf", "r")) == NULL){
+    printf("Error: open names.conf file fail\n");
     return -1;
   }
-  
+
   while(getline(&line, &useless, fd) != -1){
     new = newName(line, infos->me);
-    printf("name: %s\n", line);
     addNametoKey(new, infos->me);
     free(line);
     line = NULL;

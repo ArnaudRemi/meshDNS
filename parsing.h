@@ -10,6 +10,6 @@ mdns *reqKey(char *str);
 mdns *reqName(char *str);
 
 mdns *parseBuf(char *buf);
-mdns *parseReq(mdns *req);
+resp *parseReq(mdns *req, linfo *infos);
 
 #endif

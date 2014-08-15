@@ -3,7 +3,7 @@
 #ifndef __MESHDNSH__
 #define __MESHDNSH__
 
-#define IPV6	0b00000001
+#define IPV6	 0b00000001
 #define IPV4    0b00000010
 #define RESPOND	0b10000000
 
@@ -22,5 +22,10 @@ enum etype {
   IPTOKEY,
   IPTONAME
 } etype; 
+
+typedef struct sresponse {
+  struct smdns *req;
+  struct sresponse *next;
+} resp;
 
 #endif
