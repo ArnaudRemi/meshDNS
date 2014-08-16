@@ -36,7 +36,8 @@ resp *requestName(mdns *req, linfo *infos){
     // error malloc
     rbis->req->infos = req->infos & RESPOND;
     rbis->req->type = req->type;
-    strcmp(&(rbis->req->request[0]), &(lk->key->key[0]));
+    strcpy(&(rbis->req->request[REQUEST]), &(req->request[0]));    
+    strcpy(&(rbis->req->request[RESPONSE]), &(lk->key->key[0]));
     //generateHash();
     lk = lk->next;
     if (lk){
@@ -71,18 +72,19 @@ mdns *requestKey(mdns *req, linfo *infos){
   r->req = malloc(sizeof(mdns));
   r->req->infos = req->infos & RESPOND;
   r->req->type = req->type;
-  memcpy(&(r->req->request[0]), &(keys->ip), sizeof(struct sockaddr_in));
+  strcpy(&(r->req->request[REQUEST]), &(req->request[0]));
+  memcpy(&(r->req->request[RESPONSE]), &(keys->ip), sizeof(struct sockaddr_in));
   return r;
 }
 
-mdns *requestIpToName(mdns *req, linfo *infos){
+mdns *requestIpToKey(mdns *req, linfo *infos){
   resp *r = NULL;
   char found = 0;
   key *keys;
 
   keys = infos->keys;
   while (!found && keys){
-    if (memcmp(&(keys->key[0]), &(req->request[0]), sizeof(struct sockaddr_in)) == 0)
+    if (memcmp(&(keys->ip), &(req->request[0]), sizeof(struct sockaddr_in)) == 0)
       found = 1;
     else
       keys = keys->next;
@@ -95,11 +97,12 @@ mdns *requestIpToName(mdns *req, linfo *infos){
   r->req = malloc(sizeof(mdns));
   r->req->infos = req->infos & RESPOND;
   r->req->type = req->type;
-  strcpy(&(r->req->request[0]), &(keys->key[0]));
+  memcpy(&(r->req->request[REQUEST]), &(req->request[0]), sizeof(struct sockaddr_in));
+  strcpy(&(r->req->request[RESPONSE]), &(keys->key[0]));
   return r;
 }
 
-mdns *requestIpToKey(mdns *req, linfo *infos){
+mdns *requestIpToName(mdns *req, linfo *infos){
   resp *r = NULL;
   resp *rbis;
   char found = 0;
@@ -108,7 +111,7 @@ mdns *requestIpToKey(mdns *req, linfo *infos){
 
   keys = infos->keys;
   while (!found && keys){
-    if (memcmp(&(keys->key[0]), &(req->request[0]), sizeof(struct sockaddr_in)) == 0)
+    if (memcmp(&(keys->ip), &(req->request[0]), sizeof(struct sockaddr_in)) == 0)
       found = 1;
     else
       keys = keys->next;
@@ -125,7 +128,8 @@ mdns *requestIpToKey(mdns *req, linfo *infos){
     // error malloc
     rbis->req->infos = req->infos & RESPOND;
     rbis->req->type = req->type;
-    strcmp(&(rbis->req->request[0]), &(ln->name->name[0]));
+    memcpy(&(rbis->req->request[REQUEST]), &(req->request[0]), sizeof(struct sockaddr_in));
+    strcpy(&(rbis->req->request[RESPONSE]), &(ln->name->name[0]));
     //generateHash();
     ln = ln->next;
     if (ln){

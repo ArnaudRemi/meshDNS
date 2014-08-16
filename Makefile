@@ -1,7 +1,7 @@
 #meshDNS by rémi arnaud
 
-SOURCES = main.c config.c parsing.c request.c
-OFILE = main.o config.o parsing.o request.o
+SOURCES = main.c config.c parsing.c request.c response.c
+OFILE = main.o config.o parsing.o request.o response.o
 NAME = mdns
 
 all: build 

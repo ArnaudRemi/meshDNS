@@ -7,13 +7,17 @@
 #define IPV4    0b00000010
 #define RESPOND	0b10000000
 
+#define REQUESTSIZE 512
+#define REQUEST 0
+#define RESPONSE 256
+
 #include "config.h"
 
 typedef struct smdns {
   char	infos;
   char	hash[16];
   char	type;
-  char  request[512];
+  char  request[REQUESTSIZE];
 } mdns;
 
 enum etype {

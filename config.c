@@ -59,7 +59,7 @@ lname *newLname(name *n){
   return ln;
 }
 
-void addKeytoName(key *k, name *n){
+void addKeyToName(key *k, name *n){
   lkey *lk;
 
   if (n->lKey == NULL)
@@ -72,7 +72,7 @@ void addKeytoName(key *k, name *n){
   }
 }
 
-void addNametoKey(name *n, key *k){
+void addNameToKey(name *n, key *k){
   lname *ln;
 
   if (k->lName == NULL)
@@ -97,8 +97,9 @@ char parseFile(linfo *infos){
   }
 
   while(getline(&line, &useless, fd) != -1){
-    new = newName(line, infos->me);
-    addNametoKey(new, infos->me);
+    new = newName(line, NULL);
+    addKeyToName(infos->me, new);
+    addNameToKey(new, infos->me);
     free(line);
     line = NULL;
   }

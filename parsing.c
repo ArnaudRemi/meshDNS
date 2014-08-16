@@ -57,8 +57,16 @@ mdns *parseBuf(char *buf){
   return ret;
 }
 
-mdns *parseResponse(){
-  // faire ce qu'il faut. lol
+void parseResponse(mdns *req, linfo *infos){
+  
+  if (req->type == NAME)
+    responseName(req, infos);
+  else if (req->type == KEY)
+    responseKey(req, infos);
+  else if (req->type == IPTOKEY)
+    responseIpToKey(req, infos);
+  else if (req->type == IPTONAME)
+    responseIpToName(req, infos);  
 
   return NULL;
 }
@@ -67,8 +75,10 @@ resp *parseReq(mdns *req, linfo *infos){
   
   //hash verification
 
-  if (req->infos & RESPOND)
-    return parseResponse();
+  if (req->infos & RESPOND){
+    parseResponse(req, infos);
+    return NULL;
+  }
 
   if (req->type == NAME)
     return requestName(req, infos);

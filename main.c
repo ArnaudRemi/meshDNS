@@ -11,6 +11,7 @@
 #include <netinet/in.h>
 #include <net/if.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 #include "meshDNS.h"
 #include "parsing.h"
@@ -20,6 +21,30 @@
 #define PORT 8173
 #define BUFSIZE 512
 
+char *getPublicKey(){
+  char *key;
+  char c;
+  int fd;
+  int i = 0;
+
+  srand(time(NULL));
+  key = malloc(101);
+  key[100] = "\0";
+
+  if ((fd = open(".pkey", O_RDONLY)) != -1)
+    read(fd, key, 100);
+  else{
+    fd = open(".pkey", O_WRONLY | O_CREAT);
+    while (i < 100){
+      c = (rand() % 254) + 1; 
+      key[i] = c;
+      write(fd, &c, 1);
+      ++i;
+    }
+  }
+  return key;
+}
+
 int main(int ac, char **av){
   struct sockaddr_in	si_me;
   struct sockaddr_in	si_other;
@@ -27,7 +52,7 @@ int main(int ac, char **av){
   int			sock;
   char			*buf;
   mdns			*req;
-  resp      *resp;
+  resp      *response;
   int			recv_len;
   int			slen;
   struct ifreq		ifr;
@@ -35,6 +60,8 @@ int main(int ac, char **av){
   int			retval;
   linfo			infos;
   char			*publickey;
+  resp *tmp;
+
 
   slen = sizeof(si_other);
   if ((sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0){
@@ -51,6 +78,8 @@ int main(int ac, char **av){
   if (req == NULL || buf == NULL){
     printf("Error : malloc failed\n");
   }
+
+  publickey = getPublicKey();
 
   memset((char *) &si_me, 0, sizeof(si_me));
   
@@ -83,29 +112,33 @@ int main(int ac, char **av){
       if (select(sock + 1, &rfds, NULL, NULL, NULL) < 0)
       	printf("select error\n");
       else {
-	if (FD_ISSET(0, &rfds)){
-	  read(0, buf, BUFSIZE);
-	  printf("Send Request\n");
-	  req = parseBuf(buf);
-	  if (req != NULL){
-	    //send request to broadcast
-	    sendto(sock, req, sizeof(mdns), 0, (struct sockaddr*) si_bcast, slen);
-	    free(req);
-	  }
-	}
-	else if(FD_ISSET(sock, &rfds)){
-	  if ((recv_len = recvfrom(sock, buf, sizeof(mdns), 0, (struct sockaddr *) &si_other, &slen)) < 0)
-	    {
-	      printf("Error : recvfrom fail\n");
-	      exit(1);
-	    }
-	  printf("Receive Request\n");
-	  resp = parseReq((mdns *)buf, &infos);
-    sendto(sock, req, sizeof(mdns), 0, (struct sockaddr*) &si_other, slen);
-    freeResp(resp);
-	}
-      }
-      
+      	if (FD_ISSET(0, &rfds)){
+      	  read(0, buf, BUFSIZE);
+      	  printf("Send Request\n");
+      	  req = parseBuf(buf);
+      	  if (req != NULL){
+            // chercher en local!
+            
+      	    //send request to broadcast
+      	    sendto(sock, req, sizeof(mdns), 0, (struct sockaddr*) si_bcast, slen);
+      	    free(req);
+      	  }
+      	}
+      	else if(FD_ISSET(sock, &rfds)){
+      	  if ((recv_len = recvfrom(sock, buf, sizeof(mdns), 0, (struct sockaddr *) &si_other, &slen)) < 0){
+     	      printf("Error : recvfrom fail\n");
+     	      exit(1);
+     	    }
+      	  printf("Receive Request\n");
+      	  response = parseReq((mdns *)buf, &infos);
+          tmp = response;
+          while (tmp){
+            sendto(sock, tmp->req, sizeof(mdns), 0, (struct sockaddr*) &si_other, slen);
+            tmp = tmp->next;
+          }
+          freeResp(response);
+      	}
+      }      
     }
  
     close(sock);
