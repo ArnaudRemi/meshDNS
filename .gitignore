@@ -4,6 +4,8 @@
 *.obj
 *.elf
 
+.pkey
+
 # Libraries
 *.lib
 *.a

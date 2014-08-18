@@ -1,5 +1,7 @@
 //meshDNS by rémi arnaud
 #include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 #include "meshDNS.h"
 #include "config.h"
@@ -9,6 +11,9 @@
 void addNameToInfo(name *n, linfo *infos){
   name *tmp;
 
+  if (infos->names == NULL)
+    infos->names = malloc(sizeof(name));
+
   tmp = infos->names;
   while(tmp->next)
     tmp = tmp->next;
@@ -17,6 +22,9 @@ void addNameToInfo(name *n, linfo *infos){
 
 void addKeyToInfo(key *k, linfo *infos){
   key *tmp;
+
+  if (infos->keys == NULL)
+    infos->keys = malloc(sizeof(key));
 
   tmp = infos->keys;
   while(tmp->next)
@@ -29,6 +37,8 @@ void responseName(mdns *req, linfo *infos){
   key *k;
   struct sockaddr_in ip;
   char found;
+
+  printf("response: %s\n", &(req->request[RESPONSE]));
 
   // memset ip 0
   n = infos->names;
@@ -49,7 +59,7 @@ void responseName(mdns *req, linfo *infos){
   }
 
   if (n == NULL){
-    n = newName(&(req->request[REQUEST]));
+    n = newName(&(req->request[REQUEST]), NULL);
     addNameToInfo(n, infos);
   }
   if (k == NULL){
@@ -120,7 +130,7 @@ void responseIpToName(mdns *req, linfo *infos){
   }
 
   if (n == NULL){
-    n = newName(&(req->request[RESPONSE]));
+    n = newName(&(req->request[RESPONSE]), NULL);
     addNameToInfo(n, infos);
   }
   if (k == NULL){

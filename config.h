@@ -22,7 +22,7 @@ typedef struct skey {
 
 typedef struct skeylist {
   struct skey		*key;
-  struct skeyname	*next;
+  struct skeylist	*next;
 } lkey;
 
 typedef struct sname {
@@ -37,6 +37,12 @@ typedef struct localinfo {
   key       *keys;
 } linfo;
 
-char parseFile(linfo *);
+name *newName(char *str, lkey *keys);
+key *newKey(struct sockaddr_in ip, char *str, lname *names);
+lkey *newLkey(key *k);
+lname *newLname(name *n);
+void addKeyToName(key *k, name *n);
+void addNameToKey(name *n, key *k);
+char parseFile(linfo *infos);
 
 #endif

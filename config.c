@@ -9,15 +9,17 @@
 #include <fcntl.h>
 
 #include "config.h"
+#include "response.h"
 #include "meshDNS.h"
 
 name *newName(char *str, lkey *keys){
   name *n;
   
-  if ((n = malloc(sizeof(name))) == -1) {
+  if ((n = malloc(sizeof(name))) == NULL) {
     printf("Error: malloc fail\n");
     return NULL;
   }
+  memset(n, 0, sizeof(name));
 
   n->next = NULL;
   strcpy(&(n->name[0]), str);
@@ -31,6 +33,8 @@ key *newKey(struct sockaddr_in ip, char *str, lname *names){
 
   k = malloc(sizeof(key));
   //error malloc
+  memset(k, 0, sizeof(key));
+
   k->next = NULL;
   strcpy(&(k->key[0]), str);
   k->ip = ip;
@@ -43,6 +47,7 @@ lkey *newLkey(key *k){
   lkey *lk;
 
   lk = malloc(sizeof(lkey));
+  memset(lk, 0, sizeof(lkey));
   lk->key = k;
   lk->next = NULL;
   
@@ -53,6 +58,7 @@ lname *newLname(name *n){
   lname *ln;
 
   ln = malloc(sizeof(lname));
+  memset(ln, 0, sizeof(lname));
   ln->name = n;
   ln->next = NULL;
 
@@ -90,16 +96,19 @@ char parseFile(linfo *infos){
   char *line = NULL;
   size_t  useless = 0;
   name *new;
+  int r;
   
   if ((fd = fopen("./names.conf", "r")) == NULL){
     printf("Error: open names.conf file fail\n");
     return -1;
   }
 
-  while(getline(&line, &useless, fd) != -1){
+  while((r = getline(&line, &useless, fd)) != -1){
+    line[r - 1] = '\0';
     new = newName(line, NULL);
     addKeyToName(infos->me, new);
     addNameToKey(new, infos->me);
+    addNameToInfo(new, infos);
     free(line);
     line = NULL;
   }

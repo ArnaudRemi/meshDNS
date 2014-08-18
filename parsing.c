@@ -7,6 +7,9 @@
 
 #include "parsing.h"
 #include "meshDNS.h"
+#include "config.h"
+#include "request.h"
+#include "response.h"
 
 mdns *createReq(char* str, enum etype t){
   printf("generate request\n");
@@ -18,6 +21,7 @@ mdns *createReq(char* str, enum etype t){
     printf("Error : malloc fail\n");
     return NULL;
   }
+  memset(req, 0, sizeof(mdns));
 
   req->infos = IPV6 | IPV4;
   req->type = t;
@@ -68,12 +72,14 @@ void parseResponse(mdns *req, linfo *infos){
   else if (req->type == IPTONAME)
     responseIpToName(req, infos);  
 
-  return NULL;
+  return;
 }
 
 resp *parseReq(mdns *req, linfo *infos){
   
   //hash verification
+
+  printf("parseReq\n");
 
   if (req->infos & RESPOND){
     parseResponse(req, infos);
@@ -88,6 +94,8 @@ resp *parseReq(mdns *req, linfo *infos){
     return requestIpToKey(req, infos);
   else if (req->type == IPTONAME)
     return requestIpToName(req, infos);
+
+  printf("caca la requete\n");
 
   return NULL;
 }

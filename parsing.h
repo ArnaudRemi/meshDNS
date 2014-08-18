@@ -5,10 +5,8 @@
 
 #include "meshDNS.h"
 
-mdns *reqIp(char *str);
-mdns *reqKey(char *str);
-mdns *reqName(char *str);
-
+mdns *createReq(char* str, enum etype t);
+void parseResponse(mdns *req, linfo *infos);
 mdns *parseBuf(char *buf);
 resp *parseReq(mdns *req, linfo *infos);
 

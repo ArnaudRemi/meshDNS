@@ -2,6 +2,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <sys/socket.h>
 
 #include "meshDNS.h"
@@ -11,6 +12,9 @@
 
 resp *requestName(mdns *req, linfo *infos){
   // envoi d'un name, reponse une/key des
+
+  printf("receive name request\n");
+
   resp *r = NULL;
   resp *rbis;
   char found = 0;
@@ -18,13 +22,22 @@ resp *requestName(mdns *req, linfo *infos){
   lkey *lk;
 
   n = infos->names;
+  if (n == NULL)
+    printf("eez\n");
   while (!found && n){
-    if (strcmp(n->name, req->request) == 0)
+    printf("test name: %s\n", &(n->name[0]));
+    if (strcmp(&(n->name[0]), &(req->request[0])) == 0)
       found = 1;
     else
       n = n->next;
   }
-  if (!found)
+  if (!found){
+    printf("not found \n");
+    return NULL;
+  }
+  printf("name %s found\n", &(n->name[0]));
+
+  if (n->lKey == NULL)
     return NULL;
 
   r = malloc(sizeof(resp));
@@ -34,10 +47,12 @@ resp *requestName(mdns *req, linfo *infos){
   while (lk){
     rbis->req = malloc(sizeof(mdns));
     // error malloc
-    rbis->req->infos = req->infos & RESPOND;
+    memset(rbis->req, 0, sizeof(mdns));
+    rbis->req->infos = req->infos | RESPOND;
     rbis->req->type = req->type;
     strcpy(&(rbis->req->request[REQUEST]), &(req->request[0]));    
     strcpy(&(rbis->req->request[RESPONSE]), &(lk->key->key[0]));
+    printf("will send response: %s\n", &(lk->key->key[0]));
     //generateHash();
     lk = lk->next;
     if (lk){
@@ -51,7 +66,7 @@ resp *requestName(mdns *req, linfo *infos){
   return r;
 }
 
-mdns *requestKey(mdns *req, linfo *infos){
+resp *requestKey(mdns *req, linfo *infos){
   //envoi d'une key, réponse ip
   resp *r = NULL;
   char found = 0;
@@ -70,14 +85,15 @@ mdns *requestKey(mdns *req, linfo *infos){
   r = malloc(sizeof(resp));
   r->next = NULL;
   r->req = malloc(sizeof(mdns));
-  r->req->infos = req->infos & RESPOND;
+  memset(r->req, 0, sizeof(mdns));
+  r->req->infos = req->infos | RESPOND;
   r->req->type = req->type;
   strcpy(&(r->req->request[REQUEST]), &(req->request[0]));
   memcpy(&(r->req->request[RESPONSE]), &(keys->ip), sizeof(struct sockaddr_in));
   return r;
 }
 
-mdns *requestIpToKey(mdns *req, linfo *infos){
+resp *requestIpToKey(mdns *req, linfo *infos){
   resp *r = NULL;
   char found = 0;
   key *keys;
@@ -95,14 +111,15 @@ mdns *requestIpToKey(mdns *req, linfo *infos){
   r = malloc(sizeof(resp));
   r->next = NULL;
   r->req = malloc(sizeof(mdns));
-  r->req->infos = req->infos & RESPOND;
+  memset(r->req, 0, sizeof(mdns));
+  r->req->infos = req->infos | RESPOND;
   r->req->type = req->type;
   memcpy(&(r->req->request[REQUEST]), &(req->request[0]), sizeof(struct sockaddr_in));
   strcpy(&(r->req->request[RESPONSE]), &(keys->key[0]));
   return r;
 }
 
-mdns *requestIpToName(mdns *req, linfo *infos){
+resp *requestIpToName(mdns *req, linfo *infos){
   resp *r = NULL;
   resp *rbis;
   char found = 0;
@@ -126,7 +143,8 @@ mdns *requestIpToName(mdns *req, linfo *infos){
   while (ln){
     rbis->req = malloc(sizeof(mdns));
     // error malloc
-    rbis->req->infos = req->infos & RESPOND;
+    memset(rbis->req, 0, sizeof(mdns));
+    rbis->req->infos = req->infos | RESPOND;
     rbis->req->type = req->type;
     memcpy(&(rbis->req->request[REQUEST]), &(req->request[0]), sizeof(struct sockaddr_in));
     strcpy(&(rbis->req->request[RESPONSE]), &(ln->name->name[0]));

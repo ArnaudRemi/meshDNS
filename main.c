@@ -17,6 +17,7 @@
 #include "parsing.h"
 #include "config.h"
 #include "request.h"
+#include "response.h"
 
 #define PORT 8173
 #define BUFSIZE 512
@@ -29,7 +30,7 @@ char *getPublicKey(){
 
   srand(time(NULL));
   key = malloc(101);
-  key[100] = "\0";
+  key[100] = '\0';
 
   if ((fd = open(".pkey", O_RDONLY)) != -1)
     read(fd, key, 100);
@@ -72,11 +73,18 @@ int main(int ac, char **av){
   strncpy(ifr.ifr_name, "wlan0", IFNAMSIZ-1);
   ioctl(sock, SIOCGIFBRDADDR, &ifr); 
   si_bcast = ((struct sockaddr_in *) &ifr.ifr_broadaddr); 
-     
+  si_bcast->sin_family = AF_INET;
+  si_bcast->sin_port = htons(PORT);
+  
+
+  int broadcastEnable=1;
+  int ret=setsockopt(sock, SOL_SOCKET, SO_BROADCAST, &broadcastEnable, sizeof(broadcastEnable));
+
   buf = (char *) malloc(BUFSIZE + 1);
   req = (mdns *) malloc(sizeof(mdns) + 1);
   if (req == NULL || buf == NULL){
     printf("Error : malloc failed\n");
+    exit(1);
   }
 
   publickey = getPublicKey();
@@ -88,6 +96,7 @@ int main(int ac, char **av){
   si_me.sin_addr.s_addr = htonl(INADDR_ANY);
 
   infos.me = newKey(si_me, publickey, NULL);
+  infos.names = NULL;
   infos.keys = infos.me;
   if (parseFile(&infos) == -1){
     printf("Error : config file parsing failed\n");
@@ -116,11 +125,11 @@ int main(int ac, char **av){
       	  read(0, buf, BUFSIZE);
       	  printf("Send Request\n");
       	  req = parseBuf(buf);
-      	  if (req != NULL){
-            // chercher en local!
-            
+      	  if (req != NULL){            
       	    //send request to broadcast
-      	    sendto(sock, req, sizeof(mdns), 0, (struct sockaddr*) si_bcast, slen);
+      	    if (sendto(sock, req, sizeof(mdns), 0, (struct sockaddr*) si_bcast, slen) == -1){
+              printf("Error : sendto fail\n");
+            }
       	    free(req);
       	  }
       	}
@@ -129,11 +138,13 @@ int main(int ac, char **av){
      	      printf("Error : recvfrom fail\n");
      	      exit(1);
      	    }
-      	  printf("Receive Request\n");
+      	  printf("Receive Request: %s\n", &(((mdns *)buf)->request[0]));
       	  response = parseReq((mdns *)buf, &infos);
+          printf("prout prout\n");
           tmp = response;
           while (tmp){
             sendto(sock, tmp->req, sizeof(mdns), 0, (struct sockaddr*) &si_other, slen);
+            printf("a respond is send\n");
             tmp = tmp->next;
           }
           freeResp(response);
