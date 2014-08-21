@@ -38,7 +38,7 @@ void responseName(mdns *req, linfo *infos){
   struct sockaddr_in ip;
   char found;
 
-  printf("response: %s\n", &(req->request[RESPONSE]));
+  printf("response name: %s\n", &(req->request[RESPONSE]));
 
   // memset ip 0
   n = infos->names;
@@ -74,7 +74,13 @@ void responseKey(mdns *req, linfo *infos){
   key *k;
   key *kbis;
   struct sockaddr_in ip;
+  struct sockaddr_in ipv;
   char found;
+
+  // verbose
+  memcpy(&(ipv), &(req->request[RESPONSE]), sizeof(struct sockaddr_in));
+  printf("response key: %s\n", inet_ntoa(ipv.sin_addr));
+
 
   k = infos->keys;
   kbis = infos->keys;

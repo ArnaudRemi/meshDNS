@@ -104,13 +104,16 @@ char parseFile(linfo *infos){
   }
 
   while((r = getline(&line, &useless, fd)) != -1){
-    line[r - 1] = '\0';
-    new = newName(line, NULL);
-    addKeyToName(infos->me, new);
-    addNameToKey(new, infos->me);
-    addNameToInfo(new, infos);
-    free(line);
-    line = NULL;
+    if (strcmp(line, "") != 0){
+      if (line[r - 1] == '\n')
+        line[r - 1] = '\0';
+      new = newName(line, NULL);
+      addKeyToName(infos->me, new);
+      addNameToKey(new, infos->me);
+      addNameToInfo(new, infos);
+      free(line);
+      line = NULL;
+    }
   }
   
   return 0;

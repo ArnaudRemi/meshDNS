@@ -57,6 +57,7 @@ int main(int ac, char **av){
   int			recv_len;
   int			slen;
   struct ifreq		ifr;
+  struct ifreq    ifr2;
   fd_set		rfds;
   int			retval;
   linfo			infos;
@@ -76,6 +77,10 @@ int main(int ac, char **av){
   si_bcast->sin_family = AF_INET;
   si_bcast->sin_port = htons(PORT);
   
+//  strncpy(ifr.ifr_name, "wlan0", IFNAMSIZ-1);
+  ifr2.ifr_addr.sa_family = AF_INET;
+  strncpy(ifr2.ifr_name, "wlan0", IFNAMSIZ-1);
+  ioctl(sock, SIOCGIFADDR, &ifr2);
 
   int broadcastEnable=1;
   int ret=setsockopt(sock, SOL_SOCKET, SO_BROADCAST, &broadcastEnable, sizeof(broadcastEnable));
@@ -93,11 +98,16 @@ int main(int ac, char **av){
   
   si_me.sin_family = AF_INET;
   si_me.sin_port = htons(PORT);
-  si_me.sin_addr.s_addr = htonl(INADDR_ANY);
+  si_me.sin_addr.s_addr = ((struct sockaddr_in*)&ifr2.ifr_addr)->sin_addr.s_addr;
+
+  printf("ip address: %s\n", inet_ntoa(si_me.sin_addr));
 
   infos.me = newKey(si_me, publickey, NULL);
   infos.names = NULL;
   infos.keys = infos.me;
+
+  si_me.sin_addr.s_addr = htonl(INADDR_ANY);
+
   if (parseFile(&infos) == -1){
     printf("Error : config file parsing failed\n");
     exit(1);
@@ -140,7 +150,6 @@ int main(int ac, char **av){
      	    }
       	  printf("Receive Request: %s\n", &(((mdns *)buf)->request[0]));
       	  response = parseReq((mdns *)buf, &infos);
-          printf("prout prout\n");
           tmp = response;
           while (tmp){
             sendto(sock, tmp->req, sizeof(mdns), 0, (struct sockaddr*) &si_other, slen);
