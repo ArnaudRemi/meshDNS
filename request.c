@@ -82,6 +82,10 @@ resp *requestKey(mdns *req, linfo *infos){
   if (!found)
     return NULL;
 
+  //si ip pas encore set (normalement 0.0.0.0)
+  if (strcmp(inet_ntoa(keys->ip.sin_addr), "0.0.0.0") == 0)
+    return NULL;
+
   r = malloc(sizeof(resp));
   r->next = NULL;
   r->req = malloc(sizeof(mdns));
